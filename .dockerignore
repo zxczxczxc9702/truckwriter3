@@ -1,0 +1,10 @@
+# Docker 빌드 시 제외할 파일들
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env*
+.cache
+public/uploads
+*.log
