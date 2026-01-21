@@ -1,4 +1,25 @@
-# Node.js + Chrome for Selenium
+# Node.js + Chrome for Selenium - Multi-stage build
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+# 의존성 파일 복사 및 설치
+COPY package*.json ./
+RUN npm install
+
+# 소스 코드 복사
+COPY . .
+
+# 빌드 시 필요한 더미 환경변수
+ENV NEXTAUTH_SECRET=build-time-secret
+ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ENV SUPABASE_SERVICE_ROLE_KEY=placeholder
+
+# 빌드
+RUN npm run build
+
+# ============ 런타임 이미지 ============
 FROM node:20-slim
 
 # 필수 패키지 및 Chrome 설치
@@ -42,38 +63,15 @@ RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') \
     && rm -rf /tmp/chromedriver* \
     || echo "ChromeDriver download failed, will use fallback"
 
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# 의존성 파일 복사 및 설치
-COPY package*.json ./
-RUN npm install
+# 빌드 결과물만 복사 (환경변수 없이!)
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
-# 소스 코드 복사
-COPY . .
-
-# 빌드 시 필요한 더미 환경변수 (ARG는 빌드 시에만 사용됨)
-ARG NEXTAUTH_SECRET=build-time-secret
-ARG NEXTAUTH_URL=http://localhost:3000
-ARG NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-ARG SUPABASE_SERVICE_ROLE_KEY=placeholder
-
-# 빌드 시 ARG를 ENV로 임시 전달
-ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
-ENV NEXTAUTH_URL=$NEXTAUTH_URL
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
-
-# 빌드
-RUN npm run build
-
-# 빌드 후 Supabase 환경변수 제거 (런타임에 Render에서 주입됨)
-ENV NEXT_PUBLIC_SUPABASE_URL=""
-ENV SUPABASE_SERVICE_ROLE_KEY=""
-ENV NEXTAUTH_SECRET=""
-ENV NEXTAUTH_URL=""
-
-# 런타임 환경변수
+# 런타임 환경변수 (Supabase 없음 - Render에서 주입됨)
 ENV NODE_ENV=production
 ENV CHROME_PATH=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
