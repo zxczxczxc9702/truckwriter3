@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruckWriter - 블로그 자동 생성</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo p {
+            color: #a78bfa;
+            margin-top: 10px;
+        }
+        
+        /* Pages */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Form Elements */
+        label {
+            display: block;
+            color: #c4b5fd;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #a855f7;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        select option {
+            background: #1a1a2e;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(90deg, #22c55e, #10b981);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        /* Status */
+        .status-bar {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-bar .plan {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .plan-free { background: #4b5563; }
+        .plan-paid { background: linear-gradient(90deg, #a855f7, #ec4899); }
+        
+        /* Preview */
+        .preview-content {
+            background: white;
+            color: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .preview-content h3 {
+            font-size: 1.5rem;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+        
+        /* Tags */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .tag {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c4b5fd;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+        
+        .alert-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🚛 TruckWriter</h1>
+            <p>AI 기반 트럭 블로그 자동 생성 프로그램</p>
+        </div>
+        
+        <!-- 라이센스 인증 페이지 -->
+        <div id="page-license" class="page active">
+            <div class="card">
+                <h2>🔑 라이센스 인증</h2>
+                <div id="license-error" class="alert alert-error hidden"></div>
+                
+                <label>라이센스 키</label>
+                <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX-XXXX" />
+                
+                <label>이메일 (선택)</label>
+                <input type="email" id="license-email" placeholder="your@email.com" />
+                
+                <button class="btn btn-primary" id="btn-verify" onclick="verifyLicense()">
+                    인증하기
+                </button>
+            </div>
+        </div>
+        
+        <!-- 메인 작성 페이지 -->
+        <div id="page-main" class="page">
+            <!-- 상태바 -->
+            <div class="status-bar">
+                <div>
+                    <span id="status-plan" class="plan plan-free">무료</span>
+                    <span id="status-usage" style="margin-left: 16px;">남은 횟수: -</span>
+                </div>
+                <span id="status-expires">만료: -</span>
+            </div>
+            
+            <!-- 차량 정보 입력 -->
+            <div class="card">
+                <h2>🚛 차량 정보 입력</h2>
+                
+                <div class="grid-2">
+                    <div>
+                        <label>차량 종류 *</label>
+                        <input type="text" id="vehicleType" placeholder="예: 5톤 냉동탑차" />
+                    </div>
+                    <div>
+                        <label>지역</label>
+                        <input type="text" id="region" placeholder="예: 서울" />
+                    </div>
+                    <div>
+                        <label>가격</label>
+                        <input type="text" id="price" placeholder="예: 3,500만원" />
+                    </div>
+                    <div>
+                        <label>연식</label>
+                        <input type="text" id="year" placeholder="예: 2020년식" />
+                    </div>
+                    <div>
+                        <label>주행거리</label>
+                        <input type="text" id="mileage" placeholder="예: 15만km" />
+                    </div>
+                    <div>
+                        <label>전화번호</label>
+                        <input type="text" id="phone" placeholder="010-XXXX-XXXX" />
+                    </div>
+                </div>
+                
+                <label>핵심 키워드 (SEO)</label>
+                <input type="text" id="keyword" placeholder="예: 냉동탑차, 중고트럭" />
+                
+                <label>장점</label>
+                <textarea id="pros" placeholder="차량의 주요 장점"></textarea>
+                
+                <button class="btn btn-primary" id="btn-generate" onclick="generateContent()">
+                    ✨ 블로그 글 생성하기
+                </button>
+            </div>
+            
+            <!-- 미리보기 -->
+            <div id="preview-section" class="card hidden">
+                <h2>👁️ 미리보기</h2>
+                <div class="preview-content" id="preview-content"></div>
+                <div class="tags" id="preview-tags"></div>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <h3 style="margin-bottom: 16px; font-size: 1.1rem;">네이버 블로그 계정</h3>
+                    <div class="grid-2">
+                        <div>
+                            <label>네이버 아이디</label>
+                            <input type="text" id="naver-id" placeholder="naver_id" />
+                        </div>
+                        <div>
+                            <label>비밀번호</label>
+                            <input type="password" id="naver-pw" placeholder="••••••••" />
+                        </div>
+                    </div>
+                    <label>블로그 ID</label>
+                    <input type="text" id="blog-id" placeholder="blog.naver.com/여기_ID" />
+                    
+                    <button class="btn btn-success" id="btn-publish" onclick="publishToNaver()">
+                        🚀 네이버 블로그에 발행
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 상태 저장
+        let licenseData = null;
+        let generatedContent = null;
+        
+        // 라이센스 인증
+        async function verifyLicense() {
+            const licenseKey = document.getElementById('license-key').value.trim();
+            const email = document.getElementById('license-email').value.trim();
+            const errorEl = document.getElementById('license-error');
+            const btn = document.getElementById('btn-verify');
+            
+            if (!licenseKey) {
+                errorEl.textContent = '라이센스 키를 입력해주세요.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 확인 중...';
+            
+            try {
+                const result = await window.electronAPI.verifyLicense(licenseKey, email);
+                
+                if (result.success) {
+                    licenseData = result.license;
+                    licenseData.key = licenseKey;
+                    
+                    // 상태바 업데이트
+                    updateStatusBar(result.license, result.usage);
+                    
+                    // 메인 페이지로 이동
+                    document.getElementById('page-license').classList.remove('active');
+                    document.getElementById('page-main').classList.add('active');
+                } else {
+                    errorEl.textContent = result.error;
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorEl.textContent = '서버 연결에 실패했습니다.';
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '인증하기';
+            }
+        }
+        
+        // 상태바 업데이트
+        function updateStatusBar(license, usage) {
+            const planEl = document.getElementById('status-plan');
+            const usageEl = document.getElementById('status-usage');
+            const expiresEl = document.getElementById('status-expires');
+            
+            if (license.plan === 'paid') {
+                planEl.textContent = '유료';
+                planEl.className = 'plan plan-paid';
+            } else {
+                planEl.textContent = '무료';
+                planEl.className = 'plan plan-free';
+            }
+            
+            const limit = license.plan === 'paid' ? license.daily_limit : license.monthly_limit;
+            const remaining = limit - (usage?.used || 0);
+            const period = license.plan === 'paid' ? '오늘' : '이번 달';
+            usageEl.textContent = `${period} 남은 횟수: ${remaining}회`;
+            
+            if (license.expires_at) {
+                const date = new Date(license.expires_at);
+                expiresEl.textContent = `만료: ${date.toLocaleDateString('ko-KR')}`;
+            }
+        }
+        
+        // 콘텐츠 생성
+        async function generateContent() {
+            const btn = document.getElementById('btn-generate');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 생성 중...';
+            
+            const formData = {
+                vehicleType: document.getElementById('vehicleType').value,
+                region: document.getElementById('region').value,
+                price: document.getElementById('price').value,
+                year: document.getElementById('year').value,
+                mileage: document.getElementById('mileage').value,
+                phone: document.getElementById('phone').value,
+                keyword: document.getElementById('keyword').value,
+                pros: document.getElementById('pros').value,
+            };
+            
+            try {
+                const result = await window.electronAPI.generateContent(formData);
+                
+                if (result.success) {
+                    generatedContent = result.data;
+                    
+                    // 미리보기 표시
+                    document.getElementById('preview-content').innerHTML = `
+                        <h3>${result.data.title}</h3>
+                        <div style="white-space: pre-wrap;">${result.data.content}</div>
+                    `;
+                    
+                    const tagsEl = document.getElementById('preview-tags');
+                    tagsEl.innerHTML = result.data.tags.map(tag => 
+                        `<span class="tag">${tag}</span>`
+                    ).join('');
+                    
+                    document.getElementById('preview-section').classList.remove('hidden');
+                } else {
+                    alert('생성 실패: ' + result.error);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✨ 블로그 글 생성하기';
+            }
+        }
+        
+        // 네이버 발행
+        async function publishToNaver() {
+            if (!generatedContent) {
+                alert('먼저 블로그 글을 생성해주세요.');
+                return;
+            }
+            
+            const naverId = document.getElementById('naver-id').value;
+            const naverPw = document.getElementById('naver-pw').value;
+            const blogId = document.getElementById('blog-id').value;
+            
+            if (!naverId || !naverPw || !blogId) {
+                alert('네이버 계정 정보를 모두 입력해주세요.');
+                return;
+            }
+            
+            const btn = document.getElementById('btn-publish');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 발행 중...';
+            
+            try {
+                const result = await window.electronAPI.publishToNaver(
+                    generatedContent,
+                    { username: naverId, password: naverPw },
+                    blogId,
+                    licenseData.id
+                );
+                
+                if (result.success) {
+                    alert('✅ 네이버 블로그에 성공적으로 발행되었습니다!');
+                    // 사용량 업데이트
+                    const verifyResult = await window.electronAPI.verifyLicense(licenseData.key, '');
+                    if (verifyResult.success) {
+                        updateStatusBar(verifyResult.license, verifyResult.usage);
+                    }
+                } else {
+                    alert('발행 실패: ' + result.error);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 네이버 블로그에 발행';
+            }
+        }
+    </script>
+</body>
+</html>

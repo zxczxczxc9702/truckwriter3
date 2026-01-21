@@ -166,7 +166,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-6 text-white">
                         <Users className="w-8 h-8 mb-2" />
                         <p className="text-sm opacity-90">총 회원수</p>
@@ -182,6 +182,11 @@ export default function AdminPage() {
                         <p className="text-sm opacity-90">Free 회원</p>
                         <p className="text-3xl font-bold">{users.filter(u => u.plan === 'free' || !u.plan).length}명</p>
                     </div>
+                    <Link href="/admin/licenses" className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-6 text-white hover:scale-105 transition-transform">
+                        <Shield className="w-8 h-8 mb-2" />
+                        <p className="text-sm opacity-90">라이센스 관리</p>
+                        <p className="text-lg font-bold">→ 바로가기</p>
+                    </Link>
                 </div>
 
                 {/* Users Table */}
@@ -215,10 +220,10 @@ export default function AdminPage() {
                                                 value={user.plan || 'free'}
                                                 onChange={(e) => handleChangePlan(user.id, e.target.value)}
                                                 className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${user.plan === 'pro'
-                                                        ? 'bg-purple-500/30 text-purple-200'
-                                                        : user.plan === 'business'
-                                                            ? 'bg-yellow-500/30 text-yellow-200'
-                                                            : 'bg-gray-500/30 text-gray-200'
+                                                    ? 'bg-purple-500/30 text-purple-200'
+                                                    : user.plan === 'business'
+                                                        ? 'bg-yellow-500/30 text-yellow-200'
+                                                        : 'bg-gray-500/30 text-gray-200'
                                                     }`}
                                             >
                                                 <option value="free">Free</option>
@@ -251,8 +256,8 @@ export default function AdminPage() {
                                     key={page}
                                     onClick={() => loadUsers(page)}
                                     className={`w-10 h-10 rounded-lg font-medium transition-colors ${page === pagination.page
-                                            ? 'bg-purple-500 text-white'
-                                            : 'bg-white/10 text-white hover:bg-white/20'
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-white/10 text-white hover:bg-white/20'
                                         }`}
                                 >
                                     {page}
