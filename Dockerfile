@@ -52,16 +52,28 @@ RUN npm install
 # 소스 코드 복사
 COPY . .
 
-# 빌드 시 필요한 더미 환경변수 (런타임에 실제 값으로 대체됨)
-ENV NEXTAUTH_SECRET=build-time-secret
-ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-ENV SUPABASE_SERVICE_ROLE_KEY=placeholder
+# 빌드 시 필요한 더미 환경변수 (ARG는 빌드 시에만 사용됨)
+ARG NEXTAUTH_SECRET=build-time-secret
+ARG NEXTAUTH_URL=http://localhost:3000
+ARG NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ARG SUPABASE_SERVICE_ROLE_KEY=placeholder
+
+# 빌드 시 ARG를 ENV로 임시 전달
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
 
 # 빌드
 RUN npm run build
 
-# 환경변수
+# 빌드 후 Supabase 환경변수 제거 (런타임에 Render에서 주입됨)
+ENV NEXT_PUBLIC_SUPABASE_URL=""
+ENV SUPABASE_SERVICE_ROLE_KEY=""
+ENV NEXTAUTH_SECRET=""
+ENV NEXTAUTH_URL=""
+
+# 런타임 환경변수
 ENV NODE_ENV=production
 ENV CHROME_PATH=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
