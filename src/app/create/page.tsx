@@ -376,8 +376,8 @@ export default function CreatePost() {
                                                     </span>
                                                     {draft.scheduled_at && (
                                                         <span className={`flex items-center gap-1 ${draft.status === 'scheduled' && new Date(draft.scheduled_at) <= new Date()
-                                                                ? 'text-orange-300 font-medium'
-                                                                : ''
+                                                            ? 'text-orange-300 font-medium'
+                                                            : ''
                                                             }`}>
                                                             <Clock className="w-3 h-3" />
                                                             {new Date(draft.scheduled_at).toLocaleString('ko-KR')}
@@ -751,7 +751,7 @@ export default function CreatePost() {
             {/* Preview Modal */}
             {preview && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-gradient-to-br from-slate-900 to-purple-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/20 shadow-2xl">
+                    <div className="bg-gradient-to-br from-slate-900 to-purple-900 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-white/20 shadow-2xl">
                         <div className="flex items-center justify-between p-6 border-b border-white/10">
                             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                                 <Eye className="w-6 h-6" />
@@ -765,7 +765,7 @@ export default function CreatePost() {
                             </button>
                         </div>
 
-                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                        <div className="flex-1 p-6 overflow-y-auto">
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Left Column: Media Management */}
                                 <div className="lg:col-span-1 space-y-6">
