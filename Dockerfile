@@ -1,6 +1,12 @@
 # Node.js + Chrome for Selenium - Multi-stage build
 FROM node:20-slim AS builder
 
+# 빌드 시 Render에서 전달받는 환경변수
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG SUPABASE_SERVICE_ROLE_KEY
+ARG NEXTAUTH_SECRET
+ARG NEXTAUTH_URL
+
 WORKDIR /app
 
 # 의존성 파일 복사 및 설치
@@ -10,11 +16,11 @@ RUN npm install
 # 소스 코드 복사
 COPY . .
 
-# 빌드 시 필요한 더미 환경변수
-ENV NEXTAUTH_SECRET=build-time-secret
-ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-ENV SUPABASE_SERVICE_ROLE_KEY=placeholder
+# 빌드 시 환경변수 설정
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
 
 # 빌드
 RUN npm run build
@@ -44,6 +50,7 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon0 \
     libxrandr2 \
     xdg-utils \
+    unzip \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
@@ -65,13 +72,13 @@ RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') \
 
 WORKDIR /app
 
-# 빌드 결과물만 복사 (환경변수 없이!)
+# 빌드 결과물 복사
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-# 런타임 환경변수 (Supabase 없음 - Render에서 주입됨)
+# 런타임 환경변수
 ENV NODE_ENV=production
 ENV CHROME_PATH=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
