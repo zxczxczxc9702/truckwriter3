@@ -2,12 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function POST(req: NextRequest) {
     try {
+        // 환경변수 확인
+        if (!supabaseUrl || !supabaseKey) {
+            console.error("❌ Supabase 환경변수 누락:", {
+                hasUrl: !!supabaseUrl,
+                hasKey: !!supabaseKey
+            });
+            return NextResponse.json(
+                { success: false, error: "서버 설정 오류입니다. 관리자에게 문의하세요." },
+                { status: 500 }
+            );
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
         const { email, password, name } = await req.json();
 
         // 입력 검증
