@@ -52,6 +52,12 @@ RUN npm install
 # 소스 코드 복사
 COPY . .
 
+# 빌드 시 필요한 더미 환경변수 (런타임에 실제 값으로 대체됨)
+ENV NEXTAUTH_SECRET=build-time-secret
+ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ENV SUPABASE_SERVICE_ROLE_KEY=placeholder
+
 # 빌드
 RUN npm run build
 
