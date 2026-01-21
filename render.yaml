@@ -5,6 +5,11 @@ services:
     runtime: docker
     plan: free
     healthCheckPath: /
+    # Docker 빌드 시 전달할 ARG (NEXT_PUBLIC_ 변수는 빌드 시 필요!)
+    dockerBuildArgs:
+      NEXT_PUBLIC_SUPABASE_URL: "https://vumjtbwsbrkdhstwgjkw.supabase.co"
+      NEXTAUTH_URL: "https://truckwriter3.onrender.com"
+      NEXTAUTH_SECRET: "mysecretkey12345678901234567890"
     envVars:
       - key: NODE_ENV
         value: production
@@ -12,7 +17,7 @@ services:
         value: /usr/bin/google-chrome
       - key: CHROMEDRIVER_PATH
         value: /usr/bin/chromedriver
-      # 아래 환경변수는 Render 대시보드에서 설정하세요
+      # 런타임 환경변수 (Render 대시보드에서 설정)
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
