@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 # 빌드 시 환경변수 - 실제 값으로 하드코딩 (NEXT_PUBLIC은 빌드 시 필요)
-ENV NEXT_PUBLIC_SUPABASE_URL=https://vumjtbwsbrkdhstwgjkw.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_URL=https://vumjtbwsbtkdhxtwglkw.supabase.co
 ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_for_build
 ENV NEXTAUTH_SECRET=build-time-secret
 ENV NEXTAUTH_URL=https://truckwriter3.onrender.com
