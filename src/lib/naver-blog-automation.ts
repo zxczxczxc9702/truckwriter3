@@ -108,42 +108,138 @@ export class NaverBlogAutomation {
         }
     }
 
+    /**
+     * 입력 필드에 클립보드 기반으로 값 입력 (봇 탐지 우회)
+     * 네이버는 직접 .value 설정을 감지하므로, 클립보드 복사+붙여넣기로 입력
+     */
+    private async pasteToInput(selector: string, text: string): Promise<void> {
+        if (!this.driver) return;
+
+        // 입력 필드 클릭하여 포커스
+        const el = await this.driver.findElement(By.css(selector));
+        await el.click();
+        await this.driver.sleep(300 + Math.random() * 200);
+
+        // 기존 값 지우기 (Ctrl+A → Delete)
+        await this.driver.actions()
+            .keyDown(Key.CONTROL).sendKeys('a').keyUp(Key.CONTROL)
+            .perform();
+        await this.driver.sleep(100);
+        await this.driver.actions().sendKeys(Key.DELETE).perform();
+        await this.driver.sleep(200);
+
+        // 클립보드를 통한 붙여넣기 (execCommand 방식)
+        await this.driver.executeScript(`
+            const el = document.querySelector('${selector}');
+            el.focus();
+            // DataTransfer를 이용한 붙여넣기 시뮬레이션
+            const dt = new DataTransfer();
+            dt.setData('text/plain', arguments[0]);
+            const pasteEvent = new ClipboardEvent('paste', {
+                bubbles: true,
+                cancelable: true,
+                clipboardData: dt
+            });
+            el.dispatchEvent(pasteEvent);
+
+            // fallback: 직접 값 설정 + 이벤트 발생
+            if (!el.value || el.value.length === 0) {
+                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                    window.HTMLInputElement.prototype, 'value'
+                ).set;
+                nativeInputValueSetter.call(el, arguments[0]);
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        `, text);
+
+        await this.driver.sleep(300 + Math.random() * 300);
+
+        // 값이 설정되었는지 확인
+        const value = await this.driver.executeScript(
+            `return document.querySelector('${selector}').value;`
+        );
+        if (!value || String(value).length === 0) {
+            // 최후의 수단: sendKeys로 한 글자씩 입력
+            console.log(`클립보드 입력 실패, sendKeys로 재시도: ${selector}`);
+            await el.click();
+            await this.driver.sleep(200);
+            for (const char of text) {
+                await this.driver.actions().sendKeys(char).perform();
+                await this.driver.sleep(30 + Math.random() * 50);
+            }
+        }
+    }
+
     async login(credentials: NaverCredentials): Promise<boolean> {
         if (!this.driver) {
             throw new Error('Driver not initialized. Call initialize() first.');
         }
 
         const MAX_RETRIES = 3;
-        const RETRY_DELAY_MS = 2000;
+        const RETRY_DELAY_MS = 3000;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
                 console.log(`🔐 로그인 시도 ${attempt}/${MAX_RETRIES}...`);
 
                 await this.driver.get('https://nid.naver.com/nidlogin.login');
-                await this.driver.sleep(2000);
+                await this.driver.sleep(2000 + Math.random() * 1000);
 
+                // WebDriver 탐지 플래그 제거
                 await this.driver.executeScript(`
-                document.getElementById('id').value = '${credentials.username}';
-                document.getElementById('pw').value = '${credentials.password}';
-            `);
+                    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                    Object.defineProperty(navigator, 'languages', { get: () => ['ko-KR', 'ko', 'en-US', 'en'] });
+                    window.chrome = { runtime: {} };
+                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+                `);
+                await this.driver.sleep(500);
 
-                await this.driver.sleep(1000);
+                // 아이디 입력 (클립보드 방식)
+                console.log('아이디 입력 중...');
+                await this.pasteToInput('#id', credentials.username);
+                await this.driver.sleep(500 + Math.random() * 500);
 
-                const loginButton = await this.driver.findElement(By.css('.btn_login'));
+                // 비밀번호 입력 (클립보드 방식)
+                console.log('비밀번호 입력 중...');
+                await this.pasteToInput('#pw', credentials.password);
+                await this.driver.sleep(800 + Math.random() * 500);
+
+                // 로그인 버튼 클릭
+                const loginButton = await this.driver.findElement(By.css('.btn_login, #log\\.login'));
                 await loginButton.click();
+                console.log('로그인 버튼 클릭 완료');
 
-                await this.driver.sleep(3000);
+                await this.driver.sleep(4000);
 
                 const currentUrl = await this.driver.getCurrentUrl();
+                console.log(`로그인 후 URL: ${currentUrl}`);
+
+                // 새로운 기기 등록 팝업 처리
+                if (currentUrl.includes('new_device') || currentUrl.includes('device_guard')) {
+                    console.log('🔔 새 기기 등록 팝업 감지, 건너뛰기 시도...');
+                    try {
+                        const skipBtn = await this.driver.findElement(
+                            By.xpath("//button[contains(text(), '등록 안 함')] | //a[contains(text(), '등록 안 함')]")
+                        );
+                        await skipBtn.click();
+                        await this.driver.sleep(2000);
+                    } catch (e) {
+                        // 버튼 못 찾으면 무시
+                        console.log('기기 등록 건너뛰기 버튼 없음');
+                    }
+                }
 
                 // 캡차 감지
                 if (currentUrl.includes('captcha') || currentUrl.includes('security')) {
                     const hasCaptcha = await this.driver.executeScript(`
-                    return document.querySelector('#captcha') !== null || 
-                           document.querySelector('.captcha_wrapper') !== null ||
-                           document.body.innerText.includes('자동입력 방지');
-                `);
+                        return document.querySelector('#captcha') !== null || 
+                               document.querySelector('.captcha_wrapper') !== null ||
+                               document.body.innerText.includes('자동입력 방지');
+                    `);
 
                     if (hasCaptcha) {
                         console.error('❌ 캡차(보안문자) 감지됨');
@@ -159,10 +255,10 @@ export class NaverBlogAutomation {
 
                 // OTP 입력 필드 감지
                 const hasOtpField = await this.driver.executeScript(`
-                return document.querySelector('input[name="otp"]') !== null ||
-                       document.querySelector('.otp_input') !== null ||
-                       document.body.innerText.includes('일회용 비밀번호');
-            `);
+                    return document.querySelector('input[name="otp"]') !== null ||
+                           document.querySelector('.otp_input') !== null ||
+                           document.body.innerText.includes('일회용 비밀번호');
+                `);
 
                 if (hasOtpField) {
                     console.error('❌ 2단계 인증 입력 필드 감지됨');
@@ -170,15 +266,19 @@ export class NaverBlogAutomation {
                 }
 
                 // 로그인 성공 여부 확인
-                this.isLoggedIn = !currentUrl.includes('nidlogin');
+                const updatedUrl = await this.driver.getCurrentUrl();
+                this.isLoggedIn = !updatedUrl.includes('nidlogin');
 
                 if (this.isLoggedIn) {
                     console.log('✅ 로그인 성공!');
                     return true;
                 }
 
-                // 로그인 실패 - 다음 시도 전 대기
-                console.warn(`⚠️ 로그인 실패 (시도 ${attempt}/${MAX_RETRIES})`);
+                // 로그인 실패 원인 로깅
+                const pageText = await this.driver.executeScript(
+                    `return document.body.innerText.substring(0, 500);`
+                );
+                console.warn(`⚠️ 로그인 실패 (시도 ${attempt}/${MAX_RETRIES}), 페이지 내용: ${String(pageText).substring(0, 200)}`);
 
                 if (attempt < MAX_RETRIES) {
                     console.log(`⏳ ${RETRY_DELAY_MS / 1000}초 후 재시도...`);
