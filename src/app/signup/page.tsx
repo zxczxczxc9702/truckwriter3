@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Mail, Lock, User, Loader2, Truck, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -49,9 +50,15 @@ export default function SignupPage() {
 
             if (result.success) {
                 setSuccess(true);
+                // 자동 로그인 후 새글 작성 페이지로 이동
+                const loginResult = await signIn('credentials', {
+                    email: formData.email,
+                    password: formData.password,
+                    redirect: false,
+                });
                 setTimeout(() => {
-                    router.push('/login');
-                }, 2000);
+                    router.push(loginResult?.ok ? '/create' : '/login');
+                }, 1500);
             } else {
                 setError(result.error || '회원가입에 실패했습니다.');
             }
@@ -68,7 +75,7 @@ export default function SignupPage() {
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center">
                     <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-white mb-2">회원가입 완료!</h2>
-                    <p className="text-purple-200">로그인 페이지로 이동합니다...</p>
+                    <p className="text-purple-200">새글 작성 페이지로 이동합니다...</p>
                 </div>
             </div>
         );
