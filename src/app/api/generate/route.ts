@@ -30,9 +30,44 @@ const PLAN_LIMITS: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
     try {
-        // 세션 확인
+        // 요청 데이터 먼저 파싱 (라이센스 키 확인용)
+        const data: GenerateRequest & { licenseKey?: string } = await req.json();
+
+        // Supabase 클라이언트
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        let isAuthenticated = false;
+        let userEmail: string | null = null;
+        let userPlan = 'free';
+
+        // 1. 세션 기반 인증 시도
         const session = await getServerSession();
-        if (!session?.user?.email) {
+        if (session?.user?.email) {
+            isAuthenticated = true;
+            userEmail = session.user.email;
+        }
+
+        // 2. 라이센스 키 기반 인증 (데스크탑 앱용)
+        if (!isAuthenticated && data.licenseKey && supabaseUrl && supabaseKey) {
+            const supabase = createClient(supabaseUrl, supabaseKey);
+            const { data: license } = await supabase
+                .from('licenses')
+                .select('*')
+                .eq('license_key', data.licenseKey)
+                .eq('is_active', true)
+                .single();
+
+            if (license && new Date(license.expires_at) > new Date()) {
+                isAuthenticated = true;
+                userEmail = license.user_email || 'desktop-app';
+                userPlan = license.plan;
+                console.log(`🔑 라이센스 인증 성공: ${data.licenseKey.substring(0, 10)}...`);
+            }
+        }
+
+        // 인증 실패
+        if (!isAuthenticated) {
             return NextResponse.json({
                 success: false,
                 error: '로그인이 필요합니다.',
@@ -40,18 +75,15 @@ export async function POST(req: NextRequest) {
         }
 
         // Rate Limiting 체크
-        const identifier = getIdentifier(req, session.user.email);
+        const identifier = getIdentifier(req, userEmail || 'unknown');
         const rateLimit = checkRateLimit(identifier);
         if (!rateLimit.allowed) {
             console.log(`⚠️ Rate limit 초과: ${identifier}`);
             return rateLimitExceededResponse();
         }
 
-        // Supabase 클라이언트
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (supabaseUrl && supabaseKey) {
+        // 사용자 사용량 체크 (세션 기반 사용자만)
+        if (session?.user?.email && supabaseUrl && supabaseKey) {
             const supabase = createClient(supabaseUrl, supabaseKey);
 
             // 사용자 조회
@@ -95,8 +127,6 @@ export async function POST(req: NextRequest) {
                 console.log(`📊 사용량: ${currentUsage + 1}/${limit} (${session.user.email})`);
             }
         }
-
-        const data: GenerateRequest = await req.json();
 
         // Perplexity API 키 확인
         const apiKey = process.env.PERPLEXITY_API_KEY || process.env.OPENAI_API_KEY;

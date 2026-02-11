@@ -17,8 +17,8 @@
         "electron-builder": "^24.9.1"
     },
     "dependencies": {
-        "selenium-webdriver": "^4.15.0",
-        "chromedriver": "^119.0.0"
+        "chromedriver": "^131.0.0",
+        "selenium-webdriver": "^4.15.0"
     },
     "build": {
         "appId": "com.truckwriter.desktop",
@@ -28,7 +28,7 @@
         },
         "win": {
             "target": "nsis",
-            "icon": "icon.ico"
+            "icon": "icon.png"
         },
         "nsis": {
             "oneClick": false,

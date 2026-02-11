@@ -10,9 +10,9 @@ RUN npm install
 # 소스 코드 복사
 COPY . .
 
-# 빌드 시 환경변수 - 실제 값으로 하드코딩 (NEXT_PUBLIC은 빌드 시 필요)
-ENV NEXT_PUBLIC_SUPABASE_URL=https://vumjtbwsbtkdhxtwglkw.supabase.co
-ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_for_build
+# 빌드 시 환경변수 (NEXT_PUBLIC은 빌드 시 필요)
+ARG NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
 ENV NEXTAUTH_SECRET=build-time-secret
 ENV NEXTAUTH_URL=https://truckwriter3.onrender.com
 
@@ -66,19 +66,19 @@ RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') \
 
 WORKDIR /app
 
-# 빌드 결과물 복사
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+# standalone 모드 빌드 결과물 복사
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# 런타임 환경변수 (Supabase URL은 빌드 시 이미 JS에 박혀있음)
+# 런타임 환경변수
 ENV NODE_ENV=production
 ENV CHROME_PATH=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
+ENV PORT=3000
 
 # 포트 설정
 EXPOSE 3000
 
-# 실행
-CMD ["npm", "start"]
+# standalone 서버 실행
+CMD ["node", "server.js"]

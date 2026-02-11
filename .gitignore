@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# desktop app build artifacts
+desktop-app/dist/
+desktop-app/node_modules/
+desktop-app/package-lock.json
+
+# cache
+.cache/
+
+# chromedriver
+chromedriver-win64/
+chromedriver-win64.zip
+chromedriver-path.txt
+
+# screenshots
+*.png

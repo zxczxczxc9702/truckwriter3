@@ -119,6 +119,88 @@ export async function GET(req: NextRequest) {
     }
 }
 
+// PATCH: 라이센스 수정 (활성화 토글, 만료일 연장)
+export async function PATCH(req: NextRequest) {
+    try {
+        if (!supabaseUrl || !supabaseKey) {
+            return NextResponse.json(
+                { success: false, error: "서버 설정 오류" },
+                { status: 500 }
+            );
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const { id, action, days } = await req.json();
+
+        if (!id) {
+            return NextResponse.json(
+                { success: false, error: "라이센스 ID가 필요합니다." },
+                { status: 400 }
+            );
+        }
+
+        // 현재 라이센스 조회
+        const { data: license, error: fetchError } = await supabase
+            .from('licenses')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !license) {
+            return NextResponse.json(
+                { success: false, error: "라이센스를 찾을 수 없습니다." },
+                { status: 404 }
+            );
+        }
+
+        let updateData: Record<string, unknown> = {};
+
+        if (action === 'toggle') {
+            // 활성화/비활성화 토글
+            updateData.is_active = !license.is_active;
+        } else if (action === 'extend') {
+            // 만료일 연장
+            const extendDays = days || 30;
+            const currentExpiry = new Date(license.expires_at);
+            const now = new Date();
+            const baseDate = currentExpiry > now ? currentExpiry : now;
+            baseDate.setDate(baseDate.getDate() + extendDays);
+            updateData.expires_at = baseDate.toISOString();
+        } else {
+            return NextResponse.json(
+                { success: false, error: "유효하지 않은 action입니다. (toggle 또는 extend)" },
+                { status: 400 }
+            );
+        }
+
+        const { error: updateError } = await supabase
+            .from('licenses')
+            .update(updateData)
+            .eq('id', id);
+
+        if (updateError) {
+            return NextResponse.json(
+                { success: false, error: updateError.message },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: action === 'toggle'
+                ? `라이센스가 ${license.is_active ? '비활성화' : '활성화'}되었습니다.`
+                : `만료일이 ${days || 30}일 연장되었습니다.`,
+        });
+
+    } catch (error) {
+        console.error('라이센스 수정 오류:', error);
+        return NextResponse.json(
+            { success: false, error: "서버 오류가 발생했습니다." },
+            { status: 500 }
+        );
+    }
+}
+
 // DELETE: 라이센스 삭제 (관리자 전용)
 export async function DELETE(req: NextRequest) {
     try {

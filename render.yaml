@@ -7,7 +7,7 @@ services:
     healthCheckPath: /
     # Docker 빌드 시 전달할 ARG (NEXT_PUBLIC_ 변수는 빌드 시 필요!)
     dockerBuildArgs:
-      NEXT_PUBLIC_SUPABASE_URL: "https://vumjtbwsbrkdhstwgjkw.supabase.co"
+      NEXT_PUBLIC_SUPABASE_URL: "https://vumjtbwsbtkdhxtwglkw.supabase.co"
       NEXTAUTH_URL: "https://truckwriter3.onrender.com"
       NEXTAUTH_SECRET: "mysecretkey12345678901234567890"
     envVars:

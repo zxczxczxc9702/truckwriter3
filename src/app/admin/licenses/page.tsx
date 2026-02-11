@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Key, Plus, Trash2, Copy, RefreshCw, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, RefreshCw, ArrowLeft, CheckCircle, XCircle, Power, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 interface License {
@@ -92,6 +92,46 @@ export default function LicensePage() {
 
     const isExpired = (dateString: string) => {
         return new Date(dateString) < new Date();
+    };
+
+    const handleToggleActive = async (id: string, currentStatus: boolean) => {
+        try {
+            const response = await fetch('/api/license/generate', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, action: 'toggle' }),
+            });
+            const result = await response.json();
+            if (result.success) {
+                loadLicenses();
+            } else {
+                alert(result.error || '상태 변경 실패');
+            }
+        } catch (error) {
+            alert('오류가 발생했습니다.');
+        }
+    };
+
+    const handleExtendExpiry = async (id: string) => {
+        const days = prompt('연장할 일수를 입력하세요:', '30');
+        if (!days) return;
+
+        try {
+            const response = await fetch('/api/license/generate', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, action: 'extend', days: parseInt(days) }),
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert(result.message);
+                loadLicenses();
+            } else {
+                alert(result.error || '연장 실패');
+            }
+        } catch (error) {
+            alert('오류가 발생했습니다.');
+        }
     };
 
     return (
@@ -232,8 +272,8 @@ export default function LicensePage() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${license.plan === 'paid'
-                                                        ? 'bg-purple-500/30 text-purple-200'
-                                                        : 'bg-gray-500/30 text-gray-200'
+                                                    ? 'bg-purple-500/30 text-purple-200'
+                                                    : 'bg-gray-500/30 text-gray-200'
                                                     }`}>
                                                     {license.plan === 'paid' ? '유료' : '무료'}
                                                 </span>
@@ -258,12 +298,29 @@ export default function LicensePage() {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <button
-                                                    onClick={() => handleDelete(license.id)}
-                                                    className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/20 transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => handleToggleActive(license.id, license.is_active)}
+                                                        className={`p-2 rounded-lg transition-colors ${license.is_active ? 'text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20' : 'text-green-400 hover:text-green-300 hover:bg-green-500/20'}`}
+                                                        title={license.is_active ? '비활성화' : '활성화'}
+                                                    >
+                                                        <Power className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleExtendExpiry(license.id)}
+                                                        className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-500/20 transition-colors"
+                                                        title="만료일 연장"
+                                                    >
+                                                        <Calendar className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(license.id)}
+                                                        className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/20 transition-colors"
+                                                        title="삭제"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

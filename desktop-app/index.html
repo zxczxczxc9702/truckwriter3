@@ -1,284 +1,612 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TruckWriter - 블로그 자동 생성</title>
     <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --input-bg: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
             min-height: 100vh;
-            color: white;
         }
-        
+
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 40px 20px;
         }
-        
+
+        /* Header */
         .logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
-        
+
         .logo h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(90deg, #a855f7, #ec4899);
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
         }
-        
+
         .logo p {
-            color: #a78bfa;
-            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 1rem;
         }
-        
-        /* Pages */
+
+        /* Page Transitions */
         .page {
             display: none;
+            animation: fadeIn 0.3s ease-in-out;
         }
-        
+
         .page.active {
             display: block;
         }
-        
-        /* Cards */
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 20px;
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
+        /* Modern Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
         .card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
         }
-        
-        /* Form Elements */
-        label {
-            display: block;
-            color: #c4b5fd;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            margin-bottom: 16px;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #a855f7;
-        }
-        
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        select option {
-            background: #1a1a2e;
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 12px;
+
+        .card h3 {
             font-size: 1rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
+            color: #a5b4fc;
+            margin: 24px 0 12px;
+            display: flex;
             align-items: center;
             gap: 8px;
         }
-        
+
+        /* Form Controls */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: #475569;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #64748b;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
         .btn-primary {
-            background: linear-gradient(90deg, #a855f7, #ec4899);
+            background: var(--primary);
             color: white;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
         }
-        
+
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+            background: var(--primary-hover);
+            box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.4);
         }
-        
+
         .btn-success {
-            background: linear-gradient(90deg, #22c55e, #10b981);
+            background: var(--success);
             color: white;
         }
-        
+
         .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+            filter: brightness(1.1);
         }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Grid */
+
+        /* Grid System */
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 20px;
         }
-        
-        /* Status */
+
+        @media (max-width: 640px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Status Bar */
         .status-bar {
-            background: rgba(168, 85, 247, 0.2);
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            backdrop-filter: blur(8px);
         }
-        
-        .status-bar .plan {
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
+
+        .plan-badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        
-        .plan-free { background: #4b5563; }
-        .plan-paid { background: linear-gradient(90deg, #a855f7, #ec4899); }
-        
-        /* Preview */
+
+        .plan-free {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .plan-paid {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Preview Editor Area */
+        .preview-wrapper {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .preview-toolbar {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-btn:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
         .preview-content {
             background: white;
-            color: #1a1a2e;
+            color: #334155;
+            padding: 24px;
+            min-height: 400px;
+            outline: none;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .preview-content blockquote {
+            border-left: 4px solid var(--success);
+            margin: 16px 0;
+            padding: 12px 20px;
+            background: #f0fdf4;
+            color: #166534;
+            font-style: italic;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
             border-radius: 12px;
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.02);
         }
-        
-        .preview-content h3 {
-            font-size: 1.5rem;
-            color: #1a1a2e;
-            margin-bottom: 16px;
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
         }
-        
-        /* Tags */
+
         .tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 16px;
         }
-        
+
         .tag {
-            background: rgba(168, 85, 247, 0.2);
-            color: #c4b5fd;
-            padding: 6px 16px;
-            border-radius: 20px;
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            padding: 6px 14px;
+            border-radius: 9999px;
             font-size: 0.85rem;
+            font-weight: 500;
         }
-        
-        /* Loading */
+
         .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
-            border-top-color: transparent;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 1s infinite linear;
+            display: inline-block;
         }
-        
+
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
-        
-        /* Alert */
-        .alert {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+
+        .hidden {
+            display: none !important;
         }
-        
-        .alert-error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        
-        .alert-success {
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #86efac;
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
         }
-        
-        .hidden { display: none !important; }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="logo">
             <h1>🚛 TruckWriter</h1>
             <p>AI 기반 트럭 블로그 자동 생성 프로그램</p>
         </div>
-        
-        <!-- 라이센스 인증 페이지 -->
-        <div id="page-license" class="page active">
-            <div class="card">
-                <h2>🔑 라이센스 인증</h2>
-                <div id="license-error" class="alert alert-error hidden"></div>
-                
-                <label>라이센스 키</label>
-                <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX-XXXX" />
-                
-                <label>이메일 (선택)</label>
-                <input type="email" id="license-email" placeholder="your@email.com" />
-                
-                <button class="btn btn-primary" id="btn-verify" onclick="verifyLicense()">
-                    인증하기
-                </button>
+
+        <!-- 라이센스 인증 페이지 - 새 디자인 -->
+        <div id="page-license" class="page active" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #312e81 0%, #581c87 50%, #831843 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        ">
+            <div style="width: 100%; max-width: 480px;">
+                <!-- 헤더 -->
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+                        border-radius: 24px;
+                        margin-bottom: 16px;
+                        box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+                    ">
+                        <span style="font-size: 40px;">🚛</span>
+                    </div>
+                    <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 8px;">새 게시글 작성</h1>
+                    <p style="color: rgba(196, 181, 253, 0.8); font-size: 1rem;">차량 정보를 입력하면 자동으로 SEO 최적화된 블로그 글이 생성됩니다
+                    </p>
+                </div>
+
+                <!-- 메인 카드 -->
+                <div style="
+                    background: white;
+                    border-radius: 24px;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                    overflow: hidden;
+                ">
+                    <!-- 카드 헤더 -->
+                    <div style="
+                        background: linear-gradient(90deg, #7c3aed 0%, #8b5cf6 50%, #ec4899 100%);
+                        padding: 24px 32px;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="
+                                width: 44px;
+                                height: 44px;
+                                background: rgba(255,255,255,0.2);
+                                backdrop-filter: blur(8px);
+                                border-radius: 12px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">
+                                <span style="font-size: 20px;">🔑</span>
+                            </div>
+                            <div>
+                                <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin: 0;">기본 정보</h2>
+                                <p style="color: rgba(233, 213, 255, 0.9); font-size: 0.875rem; margin: 0;">라이센스 정보를
+                                    입력하세요</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 폼 영역 -->
+                    <div style="padding: 32px;">
+                        <div id="license-error" class="hidden" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            background: #fef2f2;
+                            border: 1px solid #fecaca;
+                            color: #dc2626;
+                            padding: 12px 16px;
+                            border-radius: 16px;
+                            margin-bottom: 24px;
+                            font-size: 0.875rem;
+                        ">
+                            <span>⚠️</span>
+                            <span id="license-error-text"></span>
+                        </div>
+
+                        <!-- 라이센스 키 입력 -->
+                        <div style="margin-bottom: 20px;">
+                            <label style="
+                                display: block;
+                                font-size: 0.875rem;
+                                font-weight: 600;
+                                color: #374151;
+                                margin-bottom: 8px;
+                            ">라이센스 키</label>
+                            <div style="position: relative;">
+                                <span style="
+                                    position: absolute;
+                                    left: 16px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    font-size: 18px;
+                                ">🔐</span>
+                                <input type="text" id="license-key" placeholder="예: XXXX-XXXX-XXXX-XXXX" style="
+                                    width: 100%;
+                                    padding: 16px 16px 16px 48px;
+                                    background: #f9fafb;
+                                    border: 2px solid #e5e7eb;
+                                    border-radius: 16px;
+                                    color: #1f2937;
+                                    font-size: 1rem;
+                                    font-family: monospace;
+                                    letter-spacing: 0.05em;
+                                    transition: all 0.2s;
+                                    box-sizing: border-box;
+                                " onfocus="this.style.borderColor='#8b5cf6'; this.style.background='white';"
+                                    onblur="this.style.borderColor='#e5e7eb'; this.style.background='#f9fafb';" />
+                            </div>
+                            <p style="
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                margin-top: 8px;
+                                font-size: 0.75rem;
+                                color: #6b7280;
+                            ">
+                                <span style="width: 4px; height: 4px; background: #8b5cf6; border-radius: 50%;"></span>
+                                라이센스 키는 구매 시 제공된 16자리 코드입니다
+                            </p>
+                        </div>
+
+                        <!-- 이메일 입력 -->
+                        <div style="margin-bottom: 28px;">
+                            <label style="
+                                display: block;
+                                font-size: 0.875rem;
+                                font-weight: 600;
+                                color: #374151;
+                                margin-bottom: 8px;
+                            ">이메일</label>
+                            <div style="position: relative;">
+                                <span style="
+                                    position: absolute;
+                                    left: 16px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    font-size: 18px;
+                                ">✉️</span>
+                                <input type="email" id="license-email" placeholder="예: example@email.com" style="
+                                    width: 100%;
+                                    padding: 16px 16px 16px 48px;
+                                    background: #f9fafb;
+                                    border: 2px solid #e5e7eb;
+                                    border-radius: 16px;
+                                    color: #1f2937;
+                                    font-size: 1rem;
+                                    transition: all 0.2s;
+                                    box-sizing: border-box;
+                                " onfocus="this.style.borderColor='#8b5cf6'; this.style.background='white';"
+                                    onblur="this.style.borderColor='#e5e7eb'; this.style.background='#f9fafb';" />
+                            </div>
+                            <p style="
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                margin-top: 8px;
+                                font-size: 0.75rem;
+                                color: #6b7280;
+                            ">
+                                <span style="width: 4px; height: 4px; background: #8b5cf6; border-radius: 50%;"></span>
+                                라이센스 관리에 사용될 이메일 주소입니다
+                            </p>
+                        </div>
+
+                        <!-- 활성화 버튼 -->
+                        <button id="btn-verify" onclick="verifyLicense()" style="
+                            width: 100%;
+                            padding: 18px;
+                            background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+                            color: white;
+                            font-size: 1.1rem;
+                            font-weight: 700;
+                            border: none;
+                            border-radius: 16px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+                            transition: all 0.2s;
+                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(139, 92, 246, 0.4)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(139, 92, 246, 0.3)';">
+                            <span>✅</span>
+                            <span>라이센스 활성화</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 하단 정보 -->
+                <div style="margin-top: 32px; text-align: center;">
+                    <div style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        background: rgba(255,255,255,0.1);
+                        backdrop-filter: blur(8px);
+                        border: 1px solid rgba(255,255,255,0.2);
+                        border-radius: 9999px;
+                        padding: 12px 24px;
+                    ">
+                        <span style="font-size: 16px;">✨</span>
+                        <span style="color: rgba(196, 181, 253, 0.9); font-size: 0.875rem;">프리미엄 기능으로 블로그 자동화를
+                            경험하세요</span>
+                    </div>
+                </div>
+
+                <!-- 저작권 -->
+                <p style="text-align: center; color: rgba(167, 139, 250, 0.6); font-size: 0.875rem; margin-top: 24px;">
+                    © 2024 TruckWriter. All rights reserved.
+                </p>
             </div>
         </div>
-        
+
         <!-- 메인 작성 페이지 -->
         <div id="page-main" class="page">
             <!-- 상태바 -->
             <div class="status-bar">
-                <div>
-                    <span id="status-plan" class="plan plan-free">무료</span>
-                    <span id="status-usage" style="margin-left: 16px;">남은 횟수: -</span>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span id="status-plan" class="plan-badge plan-free">무료</span>
+                    <span id="status-usage" style="color: var(--text-muted); font-size: 0.9rem;">남은 횟수: -</span>
                 </div>
-                <span id="status-expires">만료: -</span>
+                <span id="status-expires" style="color: var(--text-muted); font-size: 0.9rem;">만료: -</span>
             </div>
-            
+
             <!-- 차량 정보 입력 -->
             <div class="card">
                 <h2>🚛 차량 정보 입력</h2>
-                
+
                 <div class="grid-2">
                     <div>
                         <label>차량 종류 *</label>
@@ -301,30 +629,160 @@
                         <input type="text" id="mileage" placeholder="예: 15만km" />
                     </div>
                     <div>
+                        <label>마력</label>
+                        <input type="text" id="horsepower" placeholder="예: 340마력" />
+                    </div>
+                </div>
+
+                <h3>📐 적재함 제원</h3>
+                <div class="grid-2">
+                    <div>
+                        <label>길이 (mm)</label>
+                        <input type="text" id="cargoLength" placeholder="예: 6200" />
+                    </div>
+                    <div>
+                        <label>폭 (mm)</label>
+                        <input type="text" id="cargoWidth" placeholder="예: 2350" />
+                    </div>
+                    <div>
+                        <label>높이 (mm)</label>
+                        <input type="text" id="cargoHeight" placeholder="예: 2400" />
+                    </div>
+                    <div>
                         <label>전화번호</label>
                         <input type="text" id="phone" placeholder="010-XXXX-XXXX" />
                     </div>
                 </div>
-                
-                <label>핵심 키워드 (SEO)</label>
-                <input type="text" id="keyword" placeholder="예: 냉동탑차, 중고트럭" />
-                
-                <label>장점</label>
-                <textarea id="pros" placeholder="차량의 주요 장점"></textarea>
-                
-                <button class="btn btn-primary" id="btn-generate" onclick="generateContent()">
-                    ✨ 블로그 글 생성하기
-                </button>
+
+                <div style="margin-top: 20px;">
+                    <label>핵심 키워드 (SEO)</label>
+                    <input type="text" id="keyword" placeholder="예: 냉동탑차, 중고트럭" />
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label>작성자 이름 (선택)</label>
+                    <input type="text" id="authorName" placeholder="예: 트럭왕" />
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label>장점</label>
+                    <textarea id="pros" placeholder="차량의 주요 장점을 입력하세요..."></textarea>
+                </div>
+
+                <h3>🖼️ 썸네일 이미지</h3>
+                <div class="upload-area">
+                    <input type="file" id="thumbnailImage" accept="image/*" style="display: none;"
+                        onchange="handleThumbnailUpload(event)" />
+                    <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('thumbnailImage').click()">
+                        이미지 선택
+                    </button>
+                    <p style="margin-top: 8px; font-size: 0.9rem; color: var(--text-muted);">클릭하여 썸네일 업로드</p>
+                    <div id="thumbnailPreview" style="margin-top: 16px;"></div>
+                </div>
+
+                <h3>📷 본문 이미지</h3>
+                <div class="upload-area">
+                    <input type="file" id="bodyImages" multiple accept="image/*" style="display: none;"
+                        onchange="handleBodyImageUpload(event)" />
+                    <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('bodyImages').click()">
+                        이미지 선택 (다중 가능)
+                    </button>
+                    <p style="margin-top: 8px; font-size: 0.9rem; color: var(--text-muted);">본문에 들어갈 이미지를 모두 선택하세요</p>
+                    <div id="bodyImagePreviewList"
+                        style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; justify-content: center;">
+                    </div>
+                </div>
+
+                <h3>💬 인용구 (강조 문구)</h3>
+                <textarea id="quote" placeholder="예: 이 차량은 상태가 정말 최상입니다! 직접 보시면 만족하실 거예요."
+                    style="min-height: 80px;"></textarea>
+
+                <h3>📅 예약 발행</h3>
+                <div class="grid-2">
+                    <div>
+                        <label>발행 날짜</label>
+                        <input type="date" id="scheduleDate" />
+                    </div>
+                    <div>
+                        <label>발행 시간</label>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="scheduleHour" style="flex: 1;">
+                                <option value="">시</option>
+                                <option value="00">00</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                                <option value="04">04</option>
+                                <option value="05">05</option>
+                                <option value="06">06</option>
+                                <option value="07">07</option>
+                                <option value="08">08</option>
+                                <option value="09">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                                <option value="21">21</option>
+                                <option value="22">22</option>
+                                <option value="23">23</option>
+                            </select>
+                            <select id="scheduleMinute" style="flex: 1;">
+                                <option value="">분</option>
+                                <option value="00">00</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                                <option value="40">40</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px; text-align: right;">
+                    <button class="btn btn-primary" id="btn-generate" onclick="generateContent()"
+                        style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;">
+                        ✨ AI 블로그 글 생성하기
+                    </button>
+                </div>
             </div>
-            
+
             <!-- 미리보기 -->
             <div id="preview-section" class="card hidden">
                 <h2>👁️ 미리보기</h2>
-                <div class="preview-content" id="preview-content"></div>
+
+                <div class="preview-wrapper">
+                    <div class="preview-toolbar">
+                        <button type="button" class="toolbar-btn" onclick="makeQuote()">
+                            <span>💬 선택 텍스트 인용구변환</span>
+                        </button>
+                        <button type="button" class="toolbar-btn" onclick="insertQuoteBox()">
+                            <span>➕ 인용구상자</span>
+                        </button>
+                        <button type="button" class="toolbar-btn" onclick="insertImagePlaceholder()">
+                            <span>🖼️ 이미지</span>
+                        </button>
+                        <button type="button" class="toolbar-btn" onclick="removeQuote()"
+                            style="color: var(--danger); border-color: #fecaca;">
+                            <span>✖ 해제</span>
+                        </button>
+                    </div>
+                    <div class="preview-content" id="preview-content" contenteditable="true"></div>
+                </div>
+
                 <div class="tags" id="preview-tags"></div>
-                
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <h3 style="margin-bottom: 16px; font-size: 1.1rem;">네이버 블로그 계정</h3>
+
+                <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 20px; font-size: 1.1rem; color: var(--text-main);">네이버 블로그 계정</h3>
                     <div class="grid-2">
                         <div>
                             <label>네이버 아이디</label>
@@ -335,70 +793,307 @@
                             <input type="password" id="naver-pw" placeholder="••••••••" />
                         </div>
                     </div>
-                    <label>블로그 ID</label>
-                    <input type="text" id="blog-id" placeholder="blog.naver.com/여기_ID" />
-                    
-                    <button class="btn btn-success" id="btn-publish" onclick="publishToNaver()">
-                        🚀 네이버 블로그에 발행
-                    </button>
+
+                    <div style="margin-top: 4px;">
+                        <label>블로그 ID (선택)</label>
+                        <input type="text" id="blog-id" placeholder="blog.naver.com/여기_ID (아이디와 같으면 생략 가능)" />
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button class="btn btn-success" id="btn-publish" onclick="publishToNaver()"
+                            style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;">
+                            🚀 네이버 블로그에 발행
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script>
         // 상태 저장
         let licenseData = null;
         let generatedContent = null;
-        
-        // 라이센스 인증
+        let thumbnailImage = null;  // 썸네일 이미지
+        let bodyImages = [];  // 본문 이미지
+        let uploadedImages = []; // 구형 호환성을 위해 유지 (차량 사진용)
+
+        // 페이지 로드 시 날짜 최소값 설정
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('scheduleDate').min = today;
+        });
+
+        // 라이센스 인증 함수
         async function verifyLicense() {
             const licenseKey = document.getElementById('license-key').value.trim();
             const email = document.getElementById('license-email').value.trim();
-            const errorEl = document.getElementById('license-error');
-            const btn = document.getElementById('btn-verify');
-            
+            const errorDiv = document.getElementById('license-error');
+            const errorText = document.getElementById('license-error-text');
+            const verifyBtn = document.getElementById('btn-verify');
+
+            // 에러 메시지 숨기기
+            errorDiv.classList.add('hidden');
+
             if (!licenseKey) {
-                errorEl.textContent = '라이센스 키를 입력해주세요.';
-                errorEl.classList.remove('hidden');
+                errorDiv.classList.remove('hidden');
+                errorText.textContent = '라이센스 키를 입력해주세요.';
                 return;
             }
-            
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> 확인 중...';
-            
+
+            if (!email) {
+                errorDiv.classList.remove('hidden');
+                errorText.textContent = '이메일을 입력해주세요.';
+                return;
+            }
+
+            // 버튼 비활성화
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<span class="loading"></span> 인증 중...';
+
             try {
+                // Electron IPC를 통해 API 호출
                 const result = await window.electronAPI.verifyLicense(licenseKey, email);
-                
+
                 if (result.success) {
+                    // 라이센스 정보 저장
                     licenseData = result.license;
-                    licenseData.key = licenseKey;
-                    
+
                     // 상태바 업데이트
-                    updateStatusBar(result.license, result.usage);
-                    
-                    // 메인 페이지로 이동
+                    const planBadge = document.getElementById('status-plan');
+                    const usageText = document.getElementById('status-usage');
+                    const expiresText = document.getElementById('status-expires');
+
+                    if (result.license.plan === 'paid') {
+                        planBadge.textContent = '유료';
+                        planBadge.className = 'plan-badge plan-paid';
+                        usageText.textContent = `오늘 사용: ${result.usage.used}/${result.license.daily_limit}회`;
+                    } else {
+                        planBadge.textContent = '무료';
+                        planBadge.className = 'plan-badge plan-free';
+                        usageText.textContent = `이번 달 사용: ${result.usage.used}/${result.license.monthly_limit}회`;
+                    }
+
+                    const expiryDate = new Date(result.license.expires_at).toLocaleDateString('ko-KR');
+                    expiresText.textContent = `만료: ${expiryDate}`;
+
+                    // 페이지 전환
                     document.getElementById('page-license').classList.remove('active');
                     document.getElementById('page-main').classList.add('active');
+
+                    alert('라이센스 인증 성공! 🎉');
                 } else {
-                    errorEl.textContent = result.error;
-                    errorEl.classList.remove('hidden');
+                    errorDiv.classList.remove('hidden');
+                    errorText.textContent = result.error || '인증에 실패했습니다.';
                 }
             } catch (error) {
-                errorEl.textContent = '서버 연결에 실패했습니다.';
-                errorEl.classList.remove('hidden');
+                console.error('인증 오류:', error);
+                errorDiv.classList.remove('hidden');
+                errorText.textContent = '서버 연결에 실패했습니다. 개발 서버가 실행 중인지 확인해주세요.';
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '인증하기';
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<span>✅</span><span>라이센스 활성화</span>';
             }
         }
-        
+
+        // 썸네일 이미지 업로드
+        function handleThumbnailUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                thumbnailImage = { path: file.path || file.name, data: e.target.result };
+                document.getElementById('thumbnailPreview').innerHTML = `
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border-radius: 8px;" />
+                        <button onclick="removeThumbnail()" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">×</button>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeThumbnail() {
+            thumbnailImage = null;
+            document.getElementById('thumbnailImage').value = '';
+            document.getElementById('thumbnailPreview').innerHTML = '';
+        }
+
+        // 본문 이미지 업로드
+        function handleBodyImageUpload(event) {
+            const files = Array.from(event.target.files);
+            const previewList = document.getElementById('bodyImagePreviewList');
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgIndex = bodyImages.length;
+                    bodyImages.push({ path: file.path || file.name, data: e.target.result });
+
+                    const imgContainer = document.createElement('div');
+                    imgContainer.style.cssText = 'position: relative; width: 80px; height: 80px;';
+                    imgContainer.id = `body-img-${imgIndex}`;
+                    imgContainer.innerHTML = `
+                        <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="insertBodyImage(${imgIndex})" title="클릭하면 커서 위치에 삽입" />
+                        <button onclick="removeBodyImage(${imgIndex})" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px;">×</button>
+                    `;
+                    previewList.appendChild(imgContainer);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeBodyImage(index) {
+            bodyImages[index] = null;
+            const el = document.getElementById(`body-img-${index}`);
+            if (el) el.remove();
+        }
+
+        // 본문 이미지를 미리보기에 삽입
+        function insertBodyImage(index) {
+            const img = bodyImages[index];
+            if (!img) return;
+
+            const previewContent = document.getElementById('preview-content');
+            const selection = window.getSelection();
+
+            const imgEl = document.createElement('img');
+            imgEl.src = img.data;
+            imgEl.style.cssText = 'max-width: 100%; margin: 10px 0; border-radius: 8px;';
+            imgEl.setAttribute('data-image-index', index);
+
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (previewContent.contains(range.commonAncestorContainer)) {
+                    range.insertNode(imgEl);
+                } else {
+                    previewContent.appendChild(imgEl);
+                }
+            } else {
+                previewContent.appendChild(imgEl);
+            }
+        }
+
+        // 이미지 플레이스홀더 삽입 버튼 기능
+        function insertImagePlaceholder() {
+            if (bodyImages.filter(img => img !== null).length === 0) {
+                alert('먼저 상단의 [본문 이미지] 영역에 이미지를 업로드한 후, 미리보기에서 삽입할 위치에 커서를 두고 이미지를 클릭하세요.');
+                return;
+            }
+            alert('미리보기에서 원하는 위치에 커서를 두고, 상단 [본문 이미지] 목록의 사진을 클릭하면 삽입됩니다.');
+        }
+
+        // 이미지 업로드 처리 (구형 호환 - 필요한 경우 사용)
+        function handleImageUpload(event) {
+            // 현재 UI에는 연결된 input이 없으나 에러 방지용 유지
+            const files = Array.from(event.target.files);
+            const previewList = document.getElementById('imagePreviewList');
+            if (!previewList) return;
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgIndex = uploadedImages.length;
+                    const imgContainer = document.createElement('div');
+                    imgContainer.style.cssText = 'position: relative; width: 100px; height: 100px;';
+                    imgContainer.innerHTML = `
+                        <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" />
+                        <button onclick="removeImage(${imgIndex})" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">×</button>
+                    `;
+                    previewList.appendChild(imgContainer);
+                    uploadedImages.push({
+                        path: file.path || file.name,
+                        data: e.target.result
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeImage(index) {
+            if (uploadedImages[index]) {
+                uploadedImages[index] = null;
+                // UI 갱신 생략 (사용되지 않는 기능일 가능성 높음)
+            }
+        }
+
+        // ------------------ UI 개선 기능 ------------------
+
+        // 인용구 상자 삽입 (드래그 불필요)
+        function insertQuoteBox() {
+            const preview = document.getElementById('preview-content');
+            preview.focus();
+
+            const quoteBox = document.createElement('blockquote');
+            quoteBox.className = 'se-quote';
+            quoteBox.style.cssText = 'border-left: 4px solid #00c73c; padding: 10px 15px; margin: 10px 0; background: #f9f9f9; color: #333;';
+            quoteBox.innerText = '인용할 내용을 입력하세요';
+
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (preview.contains(range.commonAncestorContainer)) {
+                    range.deleteContents();
+                    range.insertNode(quoteBox);
+                    return;
+                }
+            }
+            preview.appendChild(quoteBox);
+        }
+
+        // 선택 텍스트 인용구 변환
+        function makeQuote() {
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.isCollapsed) {
+                alert('텍스트를 먼저 드래그해서 선택하세요.');
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            const selectedText = range.toString();
+
+            if (selectedText.trim()) {
+                const quoteBox = document.createElement('blockquote');
+                quoteBox.className = 'se-quote';
+                quoteBox.style.cssText = 'border-left: 4px solid #00c73c; padding: 10px 15px; margin: 10px 0; background: #f9f9f9; color: #333;';
+                quoteBox.innerText = selectedText;
+
+                range.deleteContents();
+                range.insertNode(quoteBox);
+
+                selection.removeAllRanges();
+            }
+        }
+
+        // 인용구 해제
+        function removeQuote() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+
+            let node = selection.anchorNode;
+            // 텍스트 노드인 경우 부모로 이동
+            if (node.nodeType === 3) node = node.parentNode;
+
+            const blockquote = node.closest('blockquote');
+
+            if (blockquote) {
+                const content = blockquote.innerText;
+                const textNode = document.createTextNode(content);
+                blockquote.parentNode.replaceChild(textNode, blockquote);
+            } else {
+                alert('해제할 인용구 안에 커서를 두고 클릭하세요.');
+            }
+        }
+
+
+
         // 상태바 업데이트
         function updateStatusBar(license, usage) {
             const planEl = document.getElementById('status-plan');
             const usageEl = document.getElementById('status-usage');
             const expiresEl = document.getElementById('status-expires');
-            
+
             if (license.plan === 'paid') {
                 planEl.textContent = '유료';
                 planEl.className = 'plan plan-paid';
@@ -406,52 +1101,58 @@
                 planEl.textContent = '무료';
                 planEl.className = 'plan plan-free';
             }
-            
+
             const limit = license.plan === 'paid' ? license.daily_limit : license.monthly_limit;
             const remaining = limit - (usage?.used || 0);
             const period = license.plan === 'paid' ? '오늘' : '이번 달';
             usageEl.textContent = `${period} 남은 횟수: ${remaining}회`;
-            
+
             if (license.expires_at) {
                 const date = new Date(license.expires_at);
                 expiresEl.textContent = `만료: ${date.toLocaleDateString('ko-KR')}`;
             }
         }
-        
+
         // 콘텐츠 생성
         async function generateContent() {
             const btn = document.getElementById('btn-generate');
             btn.disabled = true;
             btn.innerHTML = '<span class="loading"></span> 생성 중...';
-            
+
             const formData = {
+                licenseKey: licenseData?.key || '',  // 라이센스 키 추가
                 vehicleType: document.getElementById('vehicleType').value,
                 region: document.getElementById('region').value,
                 price: document.getElementById('price').value,
                 year: document.getElementById('year').value,
                 mileage: document.getElementById('mileage').value,
+                horsepower: document.getElementById('horsepower').value,
+                cargoLength: document.getElementById('cargoLength').value,
+                cargoWidth: document.getElementById('cargoWidth').value,
+                cargoHeight: document.getElementById('cargoHeight').value,
                 phone: document.getElementById('phone').value,
                 keyword: document.getElementById('keyword').value,
+                authorName: document.getElementById('authorName').value,
                 pros: document.getElementById('pros').value,
             };
-            
+
             try {
                 const result = await window.electronAPI.generateContent(formData);
-                
+
                 if (result.success) {
                     generatedContent = result.data;
-                    
+
                     // 미리보기 표시
                     document.getElementById('preview-content').innerHTML = `
                         <h3>${result.data.title}</h3>
                         <div style="white-space: pre-wrap;">${result.data.content}</div>
                     `;
-                    
+
                     const tagsEl = document.getElementById('preview-tags');
-                    tagsEl.innerHTML = result.data.tags.map(tag => 
+                    tagsEl.innerHTML = result.data.tags.map(tag =>
                         `<span class="tag">${tag}</span>`
                     ).join('');
-                    
+
                     document.getElementById('preview-section').classList.remove('hidden');
                 } else {
                     alert('생성 실패: ' + result.error);
@@ -463,35 +1164,62 @@
                 btn.innerHTML = '✨ 블로그 글 생성하기';
             }
         }
-        
+
         // 네이버 발행
         async function publishToNaver() {
             if (!generatedContent) {
                 alert('먼저 블로그 글을 생성해주세요.');
                 return;
             }
-            
+
             const naverId = document.getElementById('naver-id').value;
             const naverPw = document.getElementById('naver-pw').value;
             const blogId = document.getElementById('blog-id').value;
-            
+
             if (!naverId || !naverPw || !blogId) {
                 alert('네이버 계정 정보를 모두 입력해주세요.');
                 return;
             }
-            
+
+            // 인용구 가져오기 (이제 미리보기에서 직접 편집하므로 별도 필드는 참조용)
+            const quote = document.getElementById('quote').value;
+
+            // 예약 발행 정보 가져오기
+            const scheduleDate = document.getElementById('scheduleDate').value;
+            const scheduleHour = document.getElementById('scheduleHour').value;
+            const scheduleMinute = document.getElementById('scheduleMinute').value;
+            const scheduleTime = scheduleHour && scheduleMinute ? `${scheduleHour}:${scheduleMinute}` : '';
+
             const btn = document.getElementById('btn-publish');
             btn.disabled = true;
             btn.innerHTML = '<span class="loading"></span> 발행 중...';
-            
+
             try {
+                // 미리보기에서 편집된 HTML 콘텐츠 가져오기
+                const previewContent = document.getElementById('preview-content').innerHTML;
+
+                // 콘텐츠 준비 (미리보기에서 편집된 내용 + 입력 필드 인용구)
+                let finalContent = previewContent;
+                if (quote && !finalContent.includes(quote)) {
+                    finalContent = `<blockquote>${quote}</blockquote>\n\n${finalContent}`;
+                }
+
+                const postData = {
+                    title: generatedContent.title,
+                    content: finalContent,
+                    tags: generatedContent.tags,
+                    images: bodyImages.filter(img => img !== null), // null 제거
+                    thumbnail: thumbnailImage,
+                    schedule: scheduleDate && scheduleTime ? { date: scheduleDate, time: scheduleTime } : null
+                };
+
                 const result = await window.electronAPI.publishToNaver(
-                    generatedContent,
+                    postData,
                     { username: naverId, password: naverPw },
                     blogId,
                     licenseData.id
                 );
-                
+
                 if (result.success) {
                     alert('✅ 네이버 블로그에 성공적으로 발행되었습니다!');
                     // 사용량 업데이트
@@ -511,4 +1239,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 
-// API 서버 URL (Render에 배포된 서버)
-const API_BASE_URL = 'https://truckwriter3.onrender.com';
+// API 서버 URL (개발: localhost, 배포: Render 서버)
+// const API_BASE_URL = 'https://truckwriter3.onrender.com';
+const API_BASE_URL = 'http://localhost:3000';
 
 let mainWindow;
 
@@ -25,10 +26,13 @@ function createWindow() {
     mainWindow.loadFile('index.html');
 
     // 개발 모드에서 DevTools 열기
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    // 캐시 정리 (CSS 변경사항 즉시 반영)
+    await session.defaultSession.clearCache();
+
     createWindow();
 
     app.on('activate', () => {
