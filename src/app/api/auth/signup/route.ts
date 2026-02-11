@@ -38,12 +38,20 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 이메일 중복 확인
-        const { data: existingUser } = await supabase
+        // 이메일 중복 확인 (.maybeSingle()로 0건일 때 에러 방지)
+        const { data: existingUser, error: selectError } = await supabase
             .from("users")
             .select("id")
             .eq("email", email)
-            .single();
+            .maybeSingle();
+
+        if (selectError) {
+            console.error("이메일 중복 확인 에러:", selectError);
+            return NextResponse.json(
+                { success: false, error: `이메일 확인 중 오류: ${selectError.message}` },
+                { status: 500 }
+            );
+        }
 
         if (existingUser) {
             return NextResponse.json(
@@ -68,9 +76,21 @@ export async function POST(req: NextRequest) {
             .single();
 
         if (error) {
-            console.error("회원가입 에러:", error);
+            console.error("회원가입 에러:", JSON.stringify(error, null, 2));
+            console.error("에러 상세:", {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+            });
             return NextResponse.json(
-                { success: false, error: "회원가입 중 오류가 발생했습니다." },
+                {
+                    success: false,
+                    error: `회원가입 중 오류가 발생했습니다: ${error.message}`,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint,
+                },
                 { status: 500 }
             );
         }
@@ -87,8 +107,9 @@ export async function POST(req: NextRequest) {
 
     } catch (error) {
         console.error("회원가입 처리 오류:", error);
+        const errMsg = error instanceof Error ? error.message : String(error);
         return NextResponse.json(
-            { success: false, error: "서버 오류가 발생했습니다." },
+            { success: false, error: `서버 오류가 발생했습니다: ${errMsg}` },
             { status: 500 }
         );
     }
