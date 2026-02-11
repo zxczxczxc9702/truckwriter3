@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getServerSession } from "next-auth";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+function getSupabase() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 export interface PostData {
     id?: string;
@@ -36,7 +39,7 @@ export async function POST(req: NextRequest) {
         // 기존 글 업데이트 또는 새 글 생성
         if (id) {
             // 업데이트
-            const { data, error } = await supabase
+            const { data, error } = await getSupabase()
                 .from("posts")
                 .update({
                     title,
@@ -59,7 +62,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, data, message: "글이 업데이트되었습니다." });
         } else {
             // 새로 생성
-            const { data, error } = await supabase
+            const { data, error } = await getSupabase()
                 .from("posts")
                 .insert({
                     title,
@@ -94,7 +97,7 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const status = searchParams.get("status"); // draft, scheduled, published, all
 
-        let query = supabase
+        let query = getSupabase()
             .from("posts")
             .select("id, title, status, scheduled_at, created_at")
             .order("created_at", { ascending: false })
@@ -129,7 +132,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ success: false, error: "글 ID가 필요합니다." }, { status: 400 });
         }
 
-        const { error } = await supabase
+        const { error } = await getSupabase()
             .from("posts")
             .delete()
             .eq("id", id);

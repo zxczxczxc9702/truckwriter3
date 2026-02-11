@@ -3,10 +3,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 
-// Supabase 클라이언트 생성
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+function getSupabase() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 const handler = NextAuth({
     providers: [
@@ -22,7 +24,7 @@ const handler = NextAuth({
                 }
 
                 // Supabase에서 사용자 조회
-                const { data: user, error } = await supabase
+                const { data: user, error } = await getSupabase()
                     .from("users")
                     .select("*")
                     .eq("email", credentials.email)

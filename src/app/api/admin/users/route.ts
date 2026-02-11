@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getServerSession } from "next-auth";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+function getSupabase() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 // 관리자 이메일 목록 (환경변수로 설정 권장)
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || ['sinyongro@naver.com'];
+function getAdminEmails() {
+    return process.env.ADMIN_EMAILS?.split(',') || ['sinyongro@naver.com'];
+}
 
 // GET - 사용자 목록 조회
 export async function GET(req: NextRequest) {
@@ -15,7 +20,7 @@ export async function GET(req: NextRequest) {
         const session = await getServerSession();
 
         // 관리자 권한 확인
-        if (!session?.user?.email || !ADMIN_EMAILS.includes(session.user.email)) {
+        if (!session?.user?.email || !getAdminEmails().includes(session.user.email)) {
             return NextResponse.json({
                 success: false,
                 error: "관리자 권한이 필요합니다."
@@ -28,7 +33,7 @@ export async function GET(req: NextRequest) {
         const offset = (page - 1) * limit;
 
         // 사용자 목록 조회
-        const { data: users, error, count } = await supabase
+        const { data: users, error, count } = await getSupabase()
             .from("users")
             .select("id, email, name, plan, blog_id, created_at", { count: 'exact' })
             .order("created_at", { ascending: false })
@@ -67,7 +72,7 @@ export async function DELETE(req: NextRequest) {
     try {
         const session = await getServerSession();
 
-        if (!session?.user?.email || !ADMIN_EMAILS.includes(session.user.email)) {
+        if (!session?.user?.email || !getAdminEmails().includes(session.user.email)) {
             return NextResponse.json({
                 success: false,
                 error: "관리자 권한이 필요합니다."
@@ -84,7 +89,7 @@ export async function DELETE(req: NextRequest) {
             }, { status: 400 });
         }
 
-        const { error } = await supabase
+        const { error } = await getSupabase()
             .from("users")
             .delete()
             .eq("id", userId);
@@ -116,7 +121,7 @@ export async function PATCH(req: NextRequest) {
     try {
         const session = await getServerSession();
 
-        if (!session?.user?.email || !ADMIN_EMAILS.includes(session.user.email)) {
+        if (!session?.user?.email || !getAdminEmails().includes(session.user.email)) {
             return NextResponse.json({
                 success: false,
                 error: "관리자 권한이 필요합니다."
@@ -133,7 +138,7 @@ export async function PATCH(req: NextRequest) {
             }, { status: 400 });
         }
 
-        const { error } = await supabase
+        const { error } = await getSupabase()
             .from("users")
             .update({ plan })
             .eq("id", userId);

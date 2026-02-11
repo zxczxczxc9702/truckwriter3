@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+function getSupabase() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 /**
  * 예약된 글을 발행하는 스케줄러 API
@@ -33,7 +36,7 @@ export async function GET(req: NextRequest) {
         // 현재 시간 이전에 예약된 글 조회
         const now = new Date().toISOString();
 
-        const { data: scheduledPosts, error: fetchError } = await supabase
+        const { data: scheduledPosts, error: fetchError } = await getSupabase()
             .from("posts")
             .select("*")
             .eq("status", "scheduled")
@@ -88,7 +91,7 @@ export async function GET(req: NextRequest) {
                 // 현재 구현: 상태를 'ready_to_publish'로 변경하여
                 // 사용자가 앱을 열었을 때 자동 발행 트리거
 
-                await supabase
+                await getSupabase()
                     .from("posts")
                     .update({
                         status: 'published',
@@ -107,7 +110,7 @@ export async function GET(req: NextRequest) {
             } catch (postError) {
                 console.error(`발행 실패: ${post.title}`, postError);
 
-                await supabase
+                await getSupabase()
                     .from("posts")
                     .update({ status: 'failed' })
                     .eq("id", post.id);
@@ -150,7 +153,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 글 조회
-        const { data: post, error: fetchError } = await supabase
+        const { data: post, error: fetchError } = await getSupabase()
             .from("posts")
             .select("*")
             .eq("id", postId)
@@ -189,7 +192,7 @@ export async function POST(req: NextRequest) {
 
         if (publishResult.success) {
             // 상태 업데이트
-            await supabase
+            await getSupabase()
                 .from("posts")
                 .update({
                     status: 'published',
@@ -202,7 +205,7 @@ export async function POST(req: NextRequest) {
                 message: "Post published successfully",
             });
         } else {
-            await supabase
+            await getSupabase()
                 .from("posts")
                 .update({ status: 'failed' })
                 .eq("id", postId);
