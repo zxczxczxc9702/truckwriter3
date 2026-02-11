@@ -70,15 +70,14 @@ WORKDIR /app
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+# 외부 패키지 (serverExternalPackages)를 위한 node_modules 복사
+COPY --from=builder /app/node_modules ./node_modules
 
 # 런타임 환경변수
 ENV NODE_ENV=production
 ENV CHROME_PATH=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
-ENV PORT=3000
-
-# 포트 설정
-EXPOSE 3000
+ENV HOSTNAME=0.0.0.0
 
 # standalone 서버 실행
 CMD ["node", "server.js"]
