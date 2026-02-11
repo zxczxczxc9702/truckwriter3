@@ -109,64 +109,63 @@ export class NaverBlogAutomation {
     }
 
     /**
-     * 입력 필드에 클립보드 기반으로 값 입력 (봇 탐지 우회)
-     * 네이버는 직접 .value 설정을 감지하므로, 클립보드 복사+붙여넣기로 입력
+     * 입력 필드에 한 글자씩 타이핑 (봇 탐지 우회)
+     * 실제 키보드 이벤트를 생성하므로 네이버 탐지를 우회할 수 있음
      */
-    private async pasteToInput(selector: string, text: string): Promise<void> {
+    private async typeToInput(selector: string, text: string): Promise<void> {
         if (!this.driver) return;
 
         // 입력 필드 클릭하여 포커스
         const el = await this.driver.findElement(By.css(selector));
         await el.click();
-        await this.driver.sleep(300 + Math.random() * 200);
+        await this.driver.sleep(500 + Math.random() * 300);
 
-        // 기존 값 지우기 (Ctrl+A → Delete)
+        // 기존 값 지우기 (Ctrl+A → Backspace)
         await this.driver.actions()
             .keyDown(Key.CONTROL).sendKeys('a').keyUp(Key.CONTROL)
             .perform();
         await this.driver.sleep(100);
-        await this.driver.actions().sendKeys(Key.DELETE).perform();
-        await this.driver.sleep(200);
+        await this.driver.actions().sendKeys(Key.BACK_SPACE).perform();
+        await this.driver.sleep(300);
 
-        // 클립보드를 통한 붙여넣기 (execCommand 방식)
-        await this.driver.executeScript(`
-            const el = document.querySelector('${selector}');
-            el.focus();
-            // DataTransfer를 이용한 붙여넣기 시뮬레이션
-            const dt = new DataTransfer();
-            dt.setData('text/plain', arguments[0]);
-            const pasteEvent = new ClipboardEvent('paste', {
-                bubbles: true,
-                cancelable: true,
-                clipboardData: dt
-            });
-            el.dispatchEvent(pasteEvent);
+        // 한 글자씩 타이핑 (사람처럼 랜덤 딜레이)
+        for (const char of text) {
+            await el.sendKeys(char);
+            await this.driver.sleep(50 + Math.random() * 80);
+        }
 
-            // fallback: 직접 값 설정 + 이벤트 발생
-            if (!el.value || el.value.length === 0) {
-                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                    window.HTMLInputElement.prototype, 'value'
-                ).set;
-                nativeInputValueSetter.call(el, arguments[0]);
-                el.dispatchEvent(new Event('input', { bubbles: true }));
-                el.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        `, text);
+        await this.driver.sleep(300 + Math.random() * 200);
 
-        await this.driver.sleep(300 + Math.random() * 300);
+        // 값 확인
+        const value = await el.getAttribute('value');
+        console.log(`${selector} 입력 완료: ${value ? value.length + '자' : '비어있음'}`);
 
-        // 값이 설정되었는지 확인
-        const value = await this.driver.executeScript(
-            `return document.querySelector('${selector}').value;`
-        );
-        if (!value || String(value).length === 0) {
-            // 최후의 수단: sendKeys로 한 글자씩 입력
-            console.log(`클립보드 입력 실패, sendKeys로 재시도: ${selector}`);
+        // 값이 비어있으면 execCommand 방식으로 재시도
+        if (!value || value.length === 0) {
+            console.log(`sendKeys 실패, execCommand로 재시도: ${selector}`);
             await el.click();
             await this.driver.sleep(200);
-            for (const char of text) {
-                await this.driver.actions().sendKeys(char).perform();
-                await this.driver.sleep(30 + Math.random() * 50);
+            await this.driver.executeScript(`
+                const el = document.querySelector('${selector}');
+                el.focus();
+                document.execCommand('insertText', false, arguments[0]);
+            `, text);
+            await this.driver.sleep(300);
+
+            // 그래도 비어있으면 nativeInputValueSetter 사용
+            const value2 = await el.getAttribute('value');
+            if (!value2 || value2.length === 0) {
+                console.log(`execCommand도 실패, native setter로 재시도: ${selector}`);
+                await this.driver.executeScript(`
+                    const el = document.querySelector('${selector}');
+                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype, 'value'
+                    ).set;
+                    nativeInputValueSetter.call(el, arguments[0]);
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+                `, text);
             }
         }
     }
@@ -200,12 +199,12 @@ export class NaverBlogAutomation {
 
                 // 아이디 입력 (클립보드 방식)
                 console.log('아이디 입력 중...');
-                await this.pasteToInput('#id', credentials.username);
+                await this.typeToInput('#id', credentials.username);
                 await this.driver.sleep(500 + Math.random() * 500);
 
                 // 비밀번호 입력 (클립보드 방식)
                 console.log('비밀번호 입력 중...');
-                await this.pasteToInput('#pw', credentials.password);
+                await this.typeToInput('#pw', credentials.password);
                 await this.driver.sleep(800 + Math.random() * 500);
 
                 // 로그인 버튼 클릭
