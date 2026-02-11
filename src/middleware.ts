@@ -28,10 +28,10 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 이미 로그인한 사용자가 로그인/회원가입 페이지 접근 시 대시보드로 리다이렉트
+    // 이미 로그인한 사용자가 로그인/회원가입 페이지 접근 시 작성 페이지로 리다이렉트
     if (authPaths.some(path => pathname.startsWith(path))) {
         if (isAuthenticated) {
-            return NextResponse.redirect(new URL("/dashboard", request.url));
+            return NextResponse.redirect(new URL("/create", request.url));
         }
     }
 
