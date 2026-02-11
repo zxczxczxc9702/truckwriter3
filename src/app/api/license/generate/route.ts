@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 // 라이센스 키 생성 함수
 function generateLicenseKey(plan: string): string {
     const prefix = plan === 'paid' ? 'PAID' : 'FREE';
@@ -15,6 +12,9 @@ function generateLicenseKey(plan: string): string {
 // POST: 라이센스 생성 (관리자 전용)
 export async function POST(req: NextRequest) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!supabaseUrl || !supabaseKey) {
             return NextResponse.json(
                 { success: false, error: "서버 설정 오류" },
@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
 // GET: 모든 라이센스 조회 (관리자 전용)
 export async function GET(req: NextRequest) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!supabaseUrl || !supabaseKey) {
             return NextResponse.json(
                 { success: false, error: "서버 설정 오류" },
@@ -122,6 +125,9 @@ export async function GET(req: NextRequest) {
 // PATCH: 라이센스 수정 (활성화 토글, 만료일 연장)
 export async function PATCH(req: NextRequest) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!supabaseUrl || !supabaseKey) {
             return NextResponse.json(
                 { success: false, error: "서버 설정 오류" },
@@ -204,6 +210,9 @@ export async function PATCH(req: NextRequest) {
 // DELETE: 라이센스 삭제 (관리자 전용)
 export async function DELETE(req: NextRequest) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!supabaseUrl || !supabaseKey) {
             return NextResponse.json(
                 { success: false, error: "서버 설정 오류" },

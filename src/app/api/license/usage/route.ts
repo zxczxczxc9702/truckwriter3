@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 // POST: 사용량 기록 및 확인
 export async function POST(req: NextRequest) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!supabaseUrl || !supabaseKey) {
             return NextResponse.json(
                 { success: false, error: "서버 설정 오류" },
@@ -124,6 +124,9 @@ export async function POST(req: NextRequest) {
 // GET: 사용량 조회
 export async function GET(req: NextRequest) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         if (!supabaseUrl || !supabaseKey) {
             return NextResponse.json(
                 { success: false, error: "서버 설정 오류" },
